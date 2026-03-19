@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>銷售與庫存分析報告</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card h3 {
+            color: #f59e0b;
+            margin: 20px 0 15px;
+            font-size: 1.1em;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .kpi {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .kpi-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+        .kpi-label {
+            color: #888;
+            margin-top: 5px;
+        }
+        .kpi.highlight .kpi-value {
+            color: #10b981;
+        }
+        .kpi.warning .kpi-value {
+            color: #f59e0b;
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .three-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 1024px) {
+            .two-col, .three-col {
+                grid-template-columns: 1fr;
+            }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th {
+            color: #00d4ff;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .rank {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #7c3aed;
+            text-align: center;
+            line-height: 22px;
+            font-size: 11px;
+            margin-right: 6px;
+        }
+        .rank.top3 {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+        }
+        .dept-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .dept-section:last-child {
+            border-bottom: none;
+        }
+        .dept-title {
+            color: #f59e0b;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dept-total {
+            color: #888;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        .customer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .customer-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+        .customer-amount {
+            color: #10b981;
+            font-weight: 500;
+        }
+        .days-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        .days-badge.good {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .days-badge.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        .days-badge.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .insight {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+            padding: 12px 16px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        .insight.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+        }
+        .insight.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            display: flex;
+            justify-content: center;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .section-nav {
+            position: sticky;
+            top: 0;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 15px 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            margin: -20px -20px 20px;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: #fff;
+            background: rgba(0, 212, 255, 0.2);
+        }
+        .pie-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8em;
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 銷售與庫存分析報告</h1>
+        <p class="subtitle">數據期間：2026年3月1日 - 3月18日</p>
+
+        <!-- Navigation -->
+        <div class="section-nav">
+            <div class="nav-links">
+                <a href="#overview">總覽</a>
+                <a href="#pie-charts">佔比圖</a>
+                <a href="#dept-customer">部門客戶</a>
+                <a href="#inventory-days">庫存天數</a>
+                <a href="#insights">洞察建議</a>
+            </div>
+        </div>
+
+        <!-- KPI Summary -->
+        <div class="card" id="overview">
+            <h2>📈 核心指標</h2>
+            <div class="kpi-grid">
+                <div class="kpi highlight">
+                    <div class="kpi-value">¥713.5萬</div>
+                    <div class="kpi-label">3月1-17日銷售額</div>
+                </div>
+                <div class="kpi highlight">
+                    <div class="kpi-value">¥245.9萬</div>
+                    <div class="kpi-label">毛利金額</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value">34.5%</div>
+                    <div class="kpi-label">毛利率</div>
+                </div>
+                <div class="kpi warning">
+                    <div class="kpi-value">¥2,211萬</div>
+                    <div class="kpi-label">庫存成本總額</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value">44,084</div>
+                    <div class="kpi-label">銷售筆數</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value">23,295</div>
+                    <div class="kpi-label">庫存商品種數</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Charts -->
+        <div class="card" id="pie-charts">
+            <h2>🥧 銷售佔比分析</h2>
+            <div class="two-col">
+                <div>
+                    <h3>🏢 部門銷售佔比</h3>
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <canvas id="deptPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3>🏷️ 品牌銷售佔比 (Top 10)</h3>
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <canvas id="brandPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Customers -->
+        <div class="card" id="dept-customer">
+            <h2>🏢 各部門 Top 10 客戶</h2>
+            
+            <div class="two-col">
+                <div>
+                    <div class="dept-section">
+                        <div class="dept-title">📁 02北區包場-高州 <span class="dept-total">¥91.8萬 (25.7%)</span></div>
+                        <div class="customer-row"><span class="rank">1</span><span class="customer-name">（宇越）高州金灣港包場（散櫃）</span><span class="customer-amount">¥227,643</span></div>
+                        <div class="customer-row"><span class="rank">2</span><span class="customer-name">馬踏平民散櫃</span><span class="customer-amount">¥136,503</span></div>
+                        <div class="customer-row"><span class="rank">3</span><span class="customer-name">（宇越）高州金灣港（五谷雜糧櫃）</span><span class="customer-amount">¥136,415</span></div>
+                        <div class="customer-row"><span class="rank">4</span><span class="customer-name">大井堅惠散櫃</span><span class="customer-amount">¥98,841</span></div>
+                        <div class="customer-row"><span class="rank">5</span><span class="customer-name">長坡堅惠散櫃</span><span class="customer-amount">¥79,208</span></div>
+                    </div>
+
+                    <div class="dept-section">
+                        <div class="dept-title">📁 01南區包場 <span class="dept-total">¥88.0萬 (24.7%)</span></div>
+                        <div class="customer-row"><span class="rank">1</span><span class="customer-name">（駿華）龍山多客隆（散櫃）</span><span class="customer-amount">¥110,693</span></div>
+                        <div class="customer-row"><span class="rank">2</span><span class="customer-name">石鼓好而多散櫃</span><span class="customer-amount">¥67,684</span></div>
+                        <div class="customer-row"><span class="rank">3</span><span class="customer-name">明湖超市散櫃（水東總店）</span><span class="customer-amount">¥63,622</span></div>
+                        <div class="customer-row"><span class="rank">4</span><span class="customer-name">石鼓世紀華聯</span><span class="customer-amount">¥56,234</span></div>
+                        <div class="customer-row"><span class="rank">5</span><span class="customer-name">G1百佳商行</span><span class="customer-amount">¥45,123</span></div>
+                    </div>
+
+                    <div class="dept-section">
+                        <div class="dept-title">📁 05電白區 <span class="dept-total">¥35.6萬 (10.0%)</span></div>
+                        <div class="customer-row"><span class="rank">1</span><span class="customer-name">惠多多超市（電城清源灣）</span><span class="customer-amount">¥18,457</span></div>
+                        <div class="customer-row"><span class="rank">2</span><span class="customer-name">惠多多超市（電城嶺門店）</span><span class="customer-amount">¥16,875</span></div>
+                        <div class="customer-row"><span class="rank">3</span><span class="customer-name">惠多多超市(霞洞坡田店)</span><span class="customer-amount">¥12,126</span></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="dept-section">
+                        <div class="dept-title">📁 06化州區 <span class="dept-total">¥30.5萬 (8.5%)</span></div>
+                        <div class="customer-row"><span class="rank">1</span><span class="customer-name">益樂家生活超市（塘綴店）</span><span class="customer-amount">¥25,749</span></div>
+                        <div class="customer-row"><span class="rank">2</span><span class="customer-name">石灣惠廣</span><span class="customer-amount">¥16,633</span></div>
+                        <div class="customer-row"><span class="rank">3</span><span class="customer-name">江湖佳順生鮮超市</span><span class="customer-amount">¥16,142</span></div>
+                    </div>
+
+                    <div class="dept-section">
+                        <div class="dept-title">📁 07高州區 <span class="dept-total">¥24.9萬 (7.0%)</span></div>
+                        <div class="customer-row"><span class="rank">1</span><span class="customer-name">高州山姆優選</span><span class="customer-amount">¥17,552</span></div>
+                        <div class="customer-row"><span class="rank">2</span><span class="customer-name">火星場新美佳生活超市（散櫃）</span><span class="customer-amount">¥13,185</span></div>
+                        <div class="customer-row"><span class="rank">3</span><span class="customer-name">潭頭源廣惠生活超市</span><span class="customer-amount">¥9,626</span></div>
+                    </div>
+
+                    <div class="dept-section">
+                        <div class="dept-title">📁 茂名銷售部 <span class="dept-total">¥26.8萬 (7.5%)</span></div>
+                        <div class="customer-row"><span class="rank top3">1</span><span class="customer-name">水東華附學校</span><span class="customer-amount">¥93,114</span></div>
+                        <div class="customer-row"><span class="rank top3">2</span><span class="customer-name">茂名明湖超市散櫃（東信店）</span><span class="customer-amount">¥77,499</span></div>
+                        <div class="customer-row"><span class="rank top3">3</span><span class="customer-name">北斗星散櫃(紅旗店)</span><span class="customer-amount">¥33,071</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Days -->
+        <div class="card" id="inventory-days">
+            <h2>📦 庫存天數分析</h2>
+            <p style="color: #888; margin-bottom: 20px; font-size: 0.9em;">庫存天數 = 現有庫存數量 ÷ 17天平均日銷量</p>
+            
+            <h3>⚠️ 滯銷商品 (庫存天數 > 180天)</h3>
+            <table>
+                <tr>
+                    <th>排名</th>
+                    <th>商品名稱</th>
+                    <th>庫存數量</th>
+                    <th>日銷量</th>
+                    <th>庫存天數</th>
+                </tr>
+                <tr>
+                    <td><span class="rank">1</span></td>
+                    <td>徐福記環保袋</td>
+                    <td>98,760 個</td>
+                    <td>11.8 個/天</td>
+                    <td><span class="days-badge danger">8,395 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">2</span></td>
+                    <td>蠟筆小新通用拉鏈袋</td>
+                    <td>14,550 個</td>
+                    <td>1.8 個/天</td>
+                    <td><span class="days-badge danger">8,245 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">3</span></td>
+                    <td>8C透明密封袋1319(16*24cm)中</td>
+                    <td>29,600 個</td>
+                    <td>100.0 個/天</td>
+                    <td><span class="days-badge danger">296 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">4</span></td>
+                    <td>瓜子梅</td>
+                    <td>204 kg</td>
+                    <td>0.9 kg/天</td>
+                    <td><span class="days-badge warning">231 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">5</span></td>
+                    <td>玫瑰梅條1*2.5kg</td>
+                    <td>100 kg</td>
+                    <td>0.4 kg/天</td>
+                    <td><span class="days-badge warning">227 天</span></td>
+                </tr>
+            </table>
+
+            <h3>✅ 暢銷商品 (庫存天數 < 30天，需補貨)</h3>
+            <table>
+                <tr>
+                    <th>排名</th>
+                    <th>商品名稱</th>
+                    <th>庫存數量</th>
+                    <th>日銷量</th>
+                    <th>庫存天數</th>
+                </tr>
+                <tr>
+                    <td><span class="rank top3">1</span></td>
+                    <td>寶豐龍金銀花龜苓膏（加糖杯）220g*36杯</td>
+                    <td>1,836 杯</td>
+                    <td>380.0 杯/天</td>
+                    <td><span class="days-badge good">5 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank top3">2</span></td>
+                    <td>寶豐龍冰糖菊花龜苓膏（加糖杯）</td>
+                    <td>2,484 杯</td>
+                    <td>366.6 杯/天</td>
+                    <td><span class="days-badge good">7 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank top3">3</span></td>
+                    <td>甘竹豆豉鯪魚1*24（白）</td>
+                    <td>312 箱</td>
+                    <td>191.8 箱/天</td>
+                    <td><span class="days-badge good">2 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">4</span></td>
+                    <td>洽洽原香瓜子142g*32袋</td>
+                    <td>672 袋</td>
+                    <td>238.9 袋/天</td>
+                    <td><span class="days-badge good">3 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">5</span></td>
+                    <td>愛鄉親蛋奶華夫餅1*2.5kg</td>
+                    <td>750 kg</td>
+                    <td>179.7 kg/天</td>
+                    <td><span class="days-badge good">4 天</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Insights -->
+        <div class="card" id="insights">
+            <h2>💡 關鍵洞察與建議</h2>
+            
+            <div class="insight">
+                <strong>✅ 優勢：</strong>銷售毛利率34.5%。部門銷售：北區包場(25.7%)、南區包場(24.7%)貢獻50%銷售，是核心業績來源。
+            </div>
+            
+            <div class="insight warning">
+                <strong>⚠️ 庫存風險：</strong>發現多項滯銷商品，徐福記環保袋庫存高達8,395天！建議盡快促銷或處理。
+            </div>
+            
+            <div class="insight danger">
+                <strong>🚨 補貨提醒：</strong>寶豐龍龜苓膏、甘竹豆豉鯪魚、洽洽瓜子等庫存天數不足7天，需緊急補貨。
+            </div>
+        </div>
+
+        <p style="text-align: center; color: #666; margin-top: 30px; padding-bottom: 20px;">
+            數據來源：銷售_庫存明細_3-18.xlsx | 導出時間：2026-03-18
+        </p>
+    </div>
+
+    <script>
+        // Color palette
+        const colors = [
+            '#00d4ff', '#7c3aed', '#10b981', '#f59e0b', '#ef4444',
+            '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899',
+            '#6366f1', '#14b8a6', '#a3e635', '#fb923c', '#f43f5e'
+        ];
+
+        // Department Pie Chart
+        const deptData = {
+            '02北區包場-高州': 917880,
+            '01南區包場': 879781,
+            '05電白區': 356411,
+            '06化州區': 304804,
+            '04茂南區': 280016,
+            '茂名銷售部': 268418,
+            '07高州區': 248623,
+            '02北區包場-信宜': 146448,
+            '08信宜區': 117682,
+            '茂名市至匯貿易有限公司': 40726,
+            '09包裝部': 3556,
+            '茂名文員部': 3112
+        };
+
+        const deptCtx = document.getElementById('deptPieChart').getContext('2d');
+        new Chart(deptCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(deptData),
+                datasets: [{
+                    data: Object.values(deptData),
+                    backgroundColor: colors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#fff',
+                            font: { size: 11 },
+                            padding: 10,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const pct = (value / 3568497 * 100).toFixed(1);
+                                    return {
+                                        text: `${label} (${pct}%)`,
+                                        fillStyle: colors[i],
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Brand Pie Chart (Top 10)
+        const brandData = {
+            '新五谷雜糧類': 443430,
+            '愛鄉親': 338183,
+            '豪士': 212978,
+            '徐福記': 208018,
+            '新涼果': 141319,
+            '鹽津鋪子': 128488,
+            '小恩愛': 116912,
+            '甜蜜1派果凍': 116218,
+            '甘竹魚': 89891,
+            '永得利餅乾': 87637
+        };
+
+        const brandCtx = document.getElementById('brandPieChart').getContext('2d');
+        new Chart(brandCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(brandData),
+                datasets: [{
+                    data: Object.values(brandData),
+                    backgroundColor: colors,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#fff',
+                            font: { size: 11 },
+                            padding: 8
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
