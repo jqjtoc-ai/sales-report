@@ -333,6 +333,37 @@
                     </div>
                 </div>
             </div>
+            <div style="margin-top: 30px;">
+                <h3>📦 三大品類銷售佔比</h3>
+                <div class="two-col">
+                    <div>
+                        <div class="chart-wrapper">
+                            <div class="chart-container">
+                                <canvas id="categoryPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <div style="text-align: center;">
+                            <div style="margin: 15px 0; padding: 15px; background: rgba(0,212,255,0.1); border-radius: 10px;">
+                                <div style="font-size: 1.8em; color: #00d4ff;">34.5%</div>
+                                <div style="color: #888;">散稱 (散裝休閒食品)</div>
+                                <div style="color: #10b981; font-size: 0.9em;">¥245.9萬</div>
+                            </div>
+                            <div style="margin: 15px 0; padding: 15px; background: rgba(124,58,237,0.1); border-radius: 10px;">
+                                <div style="font-size: 1.8em; color: #7c3aed;">8.1%</div>
+                                <div style="color: #888;">五谷雜糧 (含涼果)</div>
+                                <div style="color: #10b981; font-size: 0.9em;">¥58.0萬</div>
+                            </div>
+                            <div style="margin: 15px 0; padding: 15px; background: rgba(245,158,11,0.1); border-radius: 10px;">
+                                <div style="font-size: 1.8em; color: #f59e0b;">3.5%</div>
+                                <div style="color: #888;">定量 (包裝)</div>
+                                <div style="color: #10b981; font-size: 0.9em;">¥24.9萬</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Department Customers -->
@@ -396,7 +427,7 @@
             <h2>📦 庫存天數分析</h2>
             <p style="color: #888; margin-bottom: 20px; font-size: 0.9em;">庫存天數 = 現有庫存數量 ÷ 17天平均日銷量</p>
             
-            <h3>⚠️ 滯銷商品 (庫存天數 > 180天)</h3>
+            <h3>⚠️ 滯銷商品 (庫存天數 > 180天，已排除物料)</h3>
             <table>
                 <tr>
                     <th>排名</th>
@@ -407,42 +438,77 @@
                 </tr>
                 <tr>
                     <td><span class="rank">1</span></td>
-                    <td>徐福記環保袋</td>
-                    <td>98,760 個</td>
-                    <td>11.8 個/天</td>
-                    <td><span class="days-badge danger">8,395 天</span></td>
+                    <td>霸王花</td>
+                    <td>13 kg</td>
+                    <td>0.0 kg/天</td>
+                    <td><span class="days-badge danger">891 天</span></td>
                 </tr>
                 <tr>
                     <td><span class="rank">2</span></td>
-                    <td>蠟筆小新通用拉鏈袋</td>
-                    <td>14,550 個</td>
-                    <td>1.8 個/天</td>
-                    <td><span class="days-badge danger">8,245 天</span></td>
+                    <td>奧利奧荷氏炫果繽紛什果口味34g*240條</td>
+                    <td>231 條</td>
+                    <td>0.7 條/天</td>
+                    <td><span class="days-badge danger">327 天</span></td>
                 </tr>
                 <tr>
                     <td><span class="rank">3</span></td>
-                    <td>8C透明密封袋1319(16*24cm)中</td>
-                    <td>29,600 個</td>
-                    <td>100.0 個/天</td>
-                    <td><span class="days-badge danger">296 天</span></td>
+                    <td>奧利奧荷氏特強味薄荷糖34g*240條</td>
+                    <td>231 條</td>
+                    <td>0.7 條/天</td>
+                    <td><span class="days-badge danger">327 天</span></td>
                 </tr>
                 <tr>
                     <td><span class="rank">4</span></td>
                     <td>瓜子梅</td>
                     <td>204 kg</td>
                     <td>0.9 kg/天</td>
-                    <td><span class="days-badge warning">231 天</span></td>
+                    <td><span class="days-badge danger">231 天</span></td>
                 </tr>
                 <tr>
                     <td><span class="rank">5</span></td>
                     <td>玫瑰梅條1*2.5kg</td>
                     <td>100 kg</td>
                     <td>0.4 kg/天</td>
-                    <td><span class="days-badge warning">227 天</span></td>
+                    <td><span class="days-badge danger">227 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">6</span></td>
+                    <td>雪梨乾</td>
+                    <td>6 kg</td>
+                    <td>0.0 kg/天</td>
+                    <td><span class="days-badge danger">219 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">7</span></td>
+                    <td>紅瓜子</td>
+                    <td>126 kg</td>
+                    <td>0.6 kg/天</td>
+                    <td><span class="days-badge danger">204 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">8</span></td>
+                    <td>食神獸風乾雞肉香辣味82克30罐</td>
+                    <td>12 罐</td>
+                    <td>0.1 罐/天</td>
+                    <td><span class="days-badge danger">204 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">9</span></td>
+                    <td>九制陳皮1*2.5kg</td>
+                    <td>262 kg</td>
+                    <td>1.5 kg/天</td>
+                    <td><span class="days-badge warning">178 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">10</span></td>
+                    <td>蒜香花生</td>
+                    <td>947 kg</td>
+                    <td>5.9 kg/天</td>
+                    <td><span class="days-badge warning">161 天</span></td>
                 </tr>
             </table>
 
-            <h3>✅ 暢銷商品 (庫存天數 < 30天，需補貨)</h3>
+            <h3>✅ 暢銷商品 (庫存天數 < 30天，需補貨，已排除物料)</h3>
             <table>
                 <tr>
                     <th>排名</th>
@@ -485,6 +551,41 @@
                     <td>750 kg</td>
                     <td>179.7 kg/天</td>
                     <td><span class="days-badge good">4 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">6</span></td>
+                    <td>寶豐龍龜苓膏原味（加糖杯）</td>
+                    <td>2,052 杯</td>
+                    <td>315.4 杯/天</td>
+                    <td><span class="days-badge good">7 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">7</span></td>
+                    <td>愛鄉親薄皮肉鬆餅1*2.5kg</td>
+                    <td>1,032 kg</td>
+                    <td>162.5 kg/天</td>
+                    <td><span class="days-badge good">6 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">8</span></td>
+                    <td>徐福記沙琪瑪香酥雞蛋味袋裝</td>
+                    <td>1,440 袋</td>
+                    <td>274.4 袋/天</td>
+                    <td><span class="days-badge good">5 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">9</span></td>
+                    <td>甘竹豆豉魚/1*24</td>
+                    <td>240 箱</td>
+                    <td>153.2 箱/天</td>
+                    <td><span class="days-badge good">2 天</span></td>
+                </tr>
+                <tr>
+                    <td><span class="rank">10</span></td>
+                    <td>愛鄉親唱片麵包1*2.5kg</td>
+                    <td>750 kg</td>
+                    <td>138.4 kg/天</td>
+                    <td><span class="days-badge good">5 天</span></td>
                 </tr>
             </table>
         </div>
@@ -610,6 +711,41 @@
                             color: '#fff',
                             font: { size: 11 },
                             padding: 8
+                        }
+                    }
+                }
+            }
+        });
+
+        // Category Pie Chart (三大品類)
+        const categoryData = {
+            '散稱': 2459761,
+            '五谷雜糧(含涼果)': 580269,
+            '定量': 249051,
+            '其他': 3845832
+        };
+
+        const categoryCtx = document.getElementById('categoryPieChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(categoryData),
+                datasets: [{
+                    data: Object.values(categoryData),
+                    backgroundColor: ['#00d4ff', '#7c3aed', '#f59e0b', '#4b5563'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#fff',
+                            font: { size: 12 },
+                            padding: 15
                         }
                     }
                 }
